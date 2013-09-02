@@ -17,7 +17,7 @@ class CLI(cmd.Cmd):
    running = False
    def do_stop(self, line):
       """stop
-      stop listening to mouse event"""
+      Stop listening to mouse event."""
       if self.running:
          recorder.stop()
          self.running = False
@@ -27,12 +27,12 @@ class CLI(cmd.Cmd):
       
    def do_clear(self, line):
       """clear
-      clear the operation list"""
+      Clear the operation list."""
       recorder.clear()
       
    def do_start(self, line):
       """start
-      start listening to mouse event"""
+      Start listening to mouse event."""
       if self.running:
          print "recorder is already running"
       else:
@@ -42,17 +42,17 @@ class CLI(cmd.Cmd):
 
    def do_list(self, line):
       """list
-      print operation list"""
+      Print operation list."""
       recorder.printOpList()
 
    def do_play(self, line):
       """play
-      play the operation list"""
+      Play the operation list."""
       recorder.play()
 
    def do_playlist(self, name):
       """playlist [filename]
-      play the operation list in file"""
+      Play the operation list in file."""
       l = recorder.opList
       
       recorder.load(name)
@@ -62,38 +62,47 @@ class CLI(cmd.Cmd):
 
    def do_save(self, name):
       """save [filename]
-      save the operation list to file"""
+      Save the operation list to file."""
       recorder.save(name)
 
    def do_load(self, name):
       """load [filename]
-      load the operation list from file"""
+      Load the operation list from file."""
       recorder.load(name)
    
    def do_int(self, sec):
       """int [seconds]
-      insert intervals"""
+      Insert intervals."""
       try:
          itv = float(sec)
          recorder.recordInterval(itv)
       except ValueError:
-         print "invalid interval."
+         print "invalid interval"
 
    def do_check(self, title):
       """check [title]
-      snapshot the window whose name contains the title
+      Snapshot the window whose name contains the title
       as a checkpoint. Recorder will stop playing the list
-      and report a failure if a check fails at the checkpoint"""
+      and report a failure if a check fails at the checkpoint."""
       recorder.recordCheckpoint(title)
 
+   def do_edit(self, position):
+      """edit [position]
+      Adjust where in the list to edit. Let position = -1 to
+      jump to the bottom of the list."""
+      try:
+         recorder.setEdit(int(position))
+      except ValueError:
+         print "input should be an integer"
+      
    def do_erase(self, line):
-      """undo
-      revoke last operation in the list"""
+      """erase
+      Delete the operation at the editting position."""
       recorder.erase()
       
    def do_quit(self, sec):
       """quit
-      quit cmd"""
+      Quit cmd."""
       mouseListener.stop()
       return True
 
@@ -103,13 +112,14 @@ cmdInterpreter = CLI()
 # the one command given by the arguments
 args = sys.argv[1:]
 if len(args) > 0:
+   import traceback
    try:
       cmd = ""
       for c in args:
          cmd += c + ' '
       cmdInterpreter.onecmd(cmd)
    except:
-      print "Failed due to exceptions"
+      traceback.print_exc()
       
    cmdInterpreter.onecmd("quit")
    
