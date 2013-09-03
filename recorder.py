@@ -4,18 +4,25 @@ import time, os
 import winutil
 import snapshot
 
-from operations import CheckPoint, Click, Interval
+from operations import CheckPoint, Click, Interval, \
+                       Snap, Resolution, Orient
 
 operation_classes = dict()
 operation_classes['Click'] = Click
 operation_classes['Interval'] = Interval
 operation_classes['CheckPoint'] = CheckPoint
+operation_classes['Snap'] = Snap
+operation_classes['Resolution'] = Resolution
+operation_classes['Orient'] = Orient
 
 class Recorder:
     opList = []
-    checkpoint_number = 0
     recording_state = False
     editPos = 0
+
+    def __init__(self):
+        if not os.path.exists(os.path.realpath('snapshots')):
+            os.mkdir(os.path.realpath('snapshots'))
 
     # callbacks
     
@@ -42,24 +49,33 @@ class Recorder:
 
         self.record(Click(title, wPos))
 
-    def recordCheckpoint(self, windowTitle):
-        self.checkpoint_number += 1
-        if not os.path.exists(os.path.realpath('snapshots')):
-            os.mkdir(os.path.realpath('snapshots'))
-        filename = 'snapshots/' + windowTitle + '_' + \
-                   str(self.checkpoint_number) + '.png'
-        snapshot.snapWindow(windowTitle, filename)
-        
-        self.record(CheckPoint(windowTitle, filename))
+    def createCheckpoint(self, windowTitle, filename):
+        path = self.filenameToPath(filename)
+        snapshot.snapWindow(windowTitle, path)
+        self.record(CheckPoint(windowTitle, path))
+    
+    def recordCheckpoint(self, windowTitle, filename):
+        path = self.filenameToPath(filename)
+        self.record(CheckPoint(windowTitle, path))
+
+    def recordSnap(self, windowTitle, filename):
+        path = self.filenameToPath(filename)
+        self.record(Snap(windowTitle, path))
+
+    def recordResolution(self, resolution):
+        self.record(Resolution(resolution))
+
+    def recordOrient(self, flag):
+        winutil.setOrientation(flag)
+        self.record(Orient(flag))
 
     def erase(self):
         if self.editPos > 0:
             self.editPos -= 1
-            if self.opList[self.editPos].__class__.__name__ == 'CheckPoint':
-                self.checkpoint_number -= 1
             del self.opList[self.editPos]
 
     def play(self):
+        winutil.setOrientation('tl')
         for op in self.opList:
             e = op.play()
             if e:
@@ -74,7 +90,8 @@ class Recorder:
         for i, op in enumerate(self.opList):
             if i == self.editPos:
                 print "--- editting here ---"
-            print op.script_out()
+            print op.__class__.__name__
+            print '\t' + op.script_out()
         
         print
 
@@ -86,11 +103,9 @@ class Recorder:
         else:
             print "position out of index"
 
-
     def clear(self):
         self.opList = []
         self.editPos = 0
-        self.checkpoint_number = 0
 
     def start(self):
         self.recording_state = True
@@ -113,11 +128,13 @@ class Recorder:
                 if not n or not s: break
                 op = operation_classes[n]()
                 self.opList.append(op.script_in(s))
-                if n == 'CheckPoint':
-                    self.checkpoint_number += 1
+
             self.editPos = len(self.opList)
 
     # private methods
     def record(self, op):
         self.opList.insert(self.editPos, op)
         self.editPos += 1
+
+    def filenameToPath(self, name):
+        return 'snapshots/' + name + '.png'

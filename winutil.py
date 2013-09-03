@@ -25,13 +25,30 @@ def maximizeWindow(hld):
     clickOnWindow(hld, btn_pos)
 
 
-def ScreenToWindow(wnd, pos):
+orientation = 'tl'
+
+ref = dict()
+ref['tl'] = lambda r: (r[0], r[1])
+ref['tr'] = lambda r: (r[2], r[1])
+ref['bl'] = lambda r: (r[0], r[3])
+ref['br'] = lambda r: (r[2], r[3])
+
+def setOrientation(flag = 'tl'):
+    global orientation
+    orientation = flag
+
+def getReference(wnd):
     rect = GetWindowRect(wnd)
-    return (pos[0] - rect[0], pos[1] - rect[1])
+    return ref[orientation](rect)
+
+def ScreenToWindow(wnd, pos):
+    point = getReference(wnd)
+    return (pos[0] - point[0], pos[1] - point[1])
 
 def WindowToScreen(wnd, pos):
-    rect = GetWindowRect(wnd)
-    return (rect[0] + pos[0], rect[1] + pos[1])
+    point = getReference(wnd)
+    return (point[0] + pos[0], point[1] + pos[1])
+
 
 def getWindowHandle(title):
     EnumWindows(getAllTitles, 0)

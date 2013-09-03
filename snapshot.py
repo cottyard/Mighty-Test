@@ -13,11 +13,14 @@ def snapWindow(title, filepath):
     # Alt + PrintScreen to capture app window
     win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
     time.sleep(1) # Hold Alt for one sec so that window appearance stablizes
+
     win32api.keybd_event(win32con.VK_SNAPSHOT, 0, 0, 0)
     win32api.keybd_event(win32con.VK_SNAPSHOT, 0, win32con.KEYEVENTF_KEYUP, 0)
+    time.sleep(0.5)
+    
     win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
 
-    time.sleep(0.5)
+    time.sleep(0.1)
     
     winutil.maximizeWindow(hld)
 
