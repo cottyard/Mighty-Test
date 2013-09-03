@@ -19,11 +19,29 @@ def clickOnWindow(hld, pos):
 
     win32api.SetCursorPos(cursor_pos)
 
-def maximizeWindow(hld):
+def bringToForeground(hld):
+    win32gui.SetForegroundWindow(hld)
+
+def isMaximized(hld):
+    return win32con.SW_SHOWMAXIMIZED == \
+           GetWindowPlacement(hld)[1]
+
+def clickOnMaximizeButton(hld):
     rect = win32gui.GetWindowRect(hld)
     btn_pos = (rect[2]-70, rect[1]+10)
     clickOnWindow(hld, btn_pos)
 
+def maximizeWindow(hld):
+    if isMaximized(hld):
+        return False
+    clickOnMaximizeButton(hld)
+    return True
+
+def normalizeWindow(hld):
+    if not isMaximized(hld):
+        return False
+    clickOnMaximizeButton(hld)
+    return True
 
 orientation = 'tl'
 
@@ -58,4 +76,4 @@ def getWindowHandle(title):
     return None
 
 if __name__ == '__main__':
-    maximizeWindow(getWindowHandle("winutil.py"))
+    normalizeWindow(getWindowHandle("winutil.py"))

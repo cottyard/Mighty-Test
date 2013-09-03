@@ -26,14 +26,18 @@ class CLI(cmd.Cmd):
       Print operation list."""
       recorder.printOpList()
 
-   def do_play(self, line):
-      """play
-      Play the operation list."""
+   def do_play(self, interval):
+      """play [interval]
+      Play the operation list. The argument is the time to wait
+      between operations(Interval operations not included).
+
+      Omit the argument to use a default interval of 0.5s"""
       try:
+         recorder.play(int(interval))
+      except ValueError:
          recorder.play()
       except:
          traceback.print_exc()
-      
 
    def do_playlist(self, name):
       """playlist [filename]
@@ -41,7 +45,7 @@ class CLI(cmd.Cmd):
       l = recorder.opList
       
       self.do_load(name)
-      self.do_play()
+      self.do_play("")
 
       recorder.opList = l
 
@@ -91,7 +95,7 @@ class CLI(cmd.Cmd):
       
       Flags are: tl(Top Left)/tr(Top Right)/
                  bl(Bottom Left)/br(Bottom Right).
-      Default flag is tl."""
+      The flag is set to tl everytime before playing the list."""
       recorder.recordOrient(flag)
       
    def do_int(self, sec):
@@ -119,7 +123,7 @@ class CLI(cmd.Cmd):
       
    def do_checkpoint(self, title_and_filename):
       """checkpoint [title] [filename]
-      Set a checkpoint in the list. At a checkpoint,
+      Add a CheckPoint operation to the list. At a checkpoint,
       recorder snaps the window and compares the snapshot
       with an image file, and stops playing and reports
       a failure if the comparison fails."""
@@ -142,8 +146,11 @@ class CLI(cmd.Cmd):
    def do_resolution(self, w_h):
       """resolution [width] [height]
       Add a Resolution operation to the list.
-      When playing this operation, if the system resolution
-      is not width * height, it will be reset."""
+      When playing this operation, the system resolution
+      will be set to width * height if it's not.
+
+      The system resolution will be recovered after
+      playing the list."""
       try:
          res = map(int, w_h.split())
          recorder.recordResolution(tuple(res))
@@ -152,17 +159,21 @@ class CLI(cmd.Cmd):
 
    def do_edit(self, position):
       """edit [position]
-      Adjust where in the list to edit. Let position = -1 to
-      jump to the bottom of the list."""
+      Adjust where in the list to edit. Omit the argument
+      to jump to the bottom of the list."""
       try:
          recorder.setEdit(int(position))
       except ValueError:
-         print "input should be an integer"
+         recorder.setEdit(-1)
       
-   def do_erase(self, line):
-      """erase
-      Delete the operation at the editting position."""
-      recorder.erase()
+   def do_erase(self, n):
+      """erase [n]
+      Delete n operations above the editting position.
+      Omit the argument to delete 1 operation."""
+      try:
+         recorder.erase(int(n))
+      except ValueError:
+         recorder.erase(1)
 
    def do_quit(self, sec):
       """quit

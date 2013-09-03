@@ -6,7 +6,8 @@ import winutil
 
 def snapWindow(title, filepath):
     hld = winutil.getWindowHandle(title)
-    winutil.maximizeWindow(hld)
+    normalWindow = winutil.maximizeWindow(hld)
+    winutil.bringToForeground(hld)
 
     time.sleep(0.5)
     
@@ -21,8 +22,9 @@ def snapWindow(title, filepath):
     win32api.keybd_event(win32con.VK_MENU, 0, win32con.KEYEVENTF_KEYUP, 0)
 
     time.sleep(0.1)
-    
-    winutil.maximizeWindow(hld)
+
+    if normalWindow:
+        winutil.normalizeWindow(hld)
 
     # Crop title bar and save picture to file
     im = ImageGrab.grabclipboard()

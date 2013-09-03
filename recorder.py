@@ -3,6 +3,7 @@ import win32gui, win32api, win32con
 import time, os
 import winutil
 import snapshot
+import screenresolution
 
 from operations import CheckPoint, Click, Interval, \
                        Snap, Resolution, Orient
@@ -19,6 +20,7 @@ class Recorder:
     opList = []
     recording_state = False
     editPos = 0
+    resolution = (0, 0)
 
     def __init__(self):
         if not os.path.exists(os.path.realpath('snapshots')):
@@ -50,16 +52,16 @@ class Recorder:
         self.record(Click(title, wPos))
 
     def createCheckpoint(self, windowTitle, filename):
-        path = self.filenameToPath(filename)
+        path = self.imageFileToPath(filename)
         snapshot.snapWindow(windowTitle, path)
         self.record(CheckPoint(windowTitle, path))
     
     def recordCheckpoint(self, windowTitle, filename):
-        path = self.filenameToPath(filename)
+        path = self.imageFileToPath(filename)
         self.record(CheckPoint(windowTitle, path))
 
     def recordSnap(self, windowTitle, filename):
-        path = self.filenameToPath(filename)
+        path = self.imageFileToPath(filename)
         self.record(Snap(windowTitle, path))
 
     def recordResolution(self, resolution):
@@ -69,28 +71,36 @@ class Recorder:
         winutil.setOrientation(flag)
         self.record(Orient(flag))
 
-    def erase(self):
-        if self.editPos > 0:
-            self.editPos -= 1
-            del self.opList[self.editPos]
-
-    def play(self):
-        winutil.setOrientation('tl')
+    def erase(self, n):
+        for i in range(n):
+            if self.editPos > 0:
+                self.editPos -= 1
+                del self.opList[self.editPos]
+            else:
+                break
+    
+    def play(self, interval = 0.5):
+        
+        self.beforePlay()
+        
         for op in self.opList:
             e = op.play()
             if e:
                 print "play error: " + e
                 break
-            time.sleep(0.1)
-
+            time.sleep(interval)
+            
+        self.afterPlay()
+        
     def printOpList(self):
         if not self.opList:
             print "empty"
+            print
             return
         for i, op in enumerate(self.opList):
             if i == self.editPos:
-                print "--- editting here ---"
-            print op.__class__.__name__
+                print "------ editting here ------"
+            print i + 1, ": " + op.__class__.__name__
             print '\t' + op.script_out()
         
         print
@@ -114,14 +124,14 @@ class Recorder:
         self.recording_state = False
 
     def save(self, fname):
-        with open(fname + ".op", 'wb') as f:
+        with open(self.listFileToPath(fname), 'wb') as f:
             for op in self.opList:
                 f.write(op.__class__.__name__ + '\n')
                 f.write(op.script_out() + '\n')
 
     def load(self, fname):
         self.clear()
-        with open(fname + ".op", 'rb') as f:
+        with open(self.listFileToPath(fname), 'rb') as f:
             while True:
                 n = f.readline().strip()
                 s = f.readline().strip()
@@ -136,5 +146,16 @@ class Recorder:
         self.opList.insert(self.editPos, op)
         self.editPos += 1
 
-    def filenameToPath(self, name):
+    def imageFileToPath(self, name):
         return 'snapshots/' + name + '.png'
+
+    def listFileToPath(self, name):
+        return 'lists/' + name + '.op'
+
+    def beforePlay(self):
+        winutil.setOrientation('tl')
+        self.resolution = screenresolution.getRes()
+        
+    def afterPlay(self):
+        if screenresolution.getRes() != self.resolution:
+            screenresolution.convert(self.resolution)
