@@ -5,26 +5,39 @@ import winutil
 import snapshot
 import screenresolution
 
-from operations import CheckPoint, Click, Interval, \
-                       Snap, Resolution, Orient
+from operations import CheckPoint, Click, DoubleClick, Interval, \
+                       Snap, WinState, Resolution, Orient, Key
 
 operation_classes = dict()
 operation_classes['Click'] = Click
+operation_classes['DoubleClick'] = DoubleClick
 operation_classes['Interval'] = Interval
 operation_classes['CheckPoint'] = CheckPoint
 operation_classes['Snap'] = Snap
 operation_classes['Resolution'] = Resolution
 operation_classes['Orient'] = Orient
+operation_classes['WinState'] = WinState
+operation_classes['Key'] = Key
+
 
 class Recorder:
+    
+    KEY_DOWN = 1
+    KEY_UP = 0
+    DOUBLE_CLICK_INTERVAL = 0.5
+
     opList = []
     recording_state = False
     editPos = 0
     resolution = (0, 0)
 
+    lastClickTime = 0
+
     def __init__(self):
         if not os.path.exists(os.path.realpath('snapshots')):
             os.mkdir(os.path.realpath('snapshots'))
+        if not os.path.exists(os.path.realpath('lists')):
+            os.mkdir(os.path.realpath('lists'))
 
     # callbacks
     
@@ -39,17 +52,34 @@ class Recorder:
         self.record(Interval(itv))
 
     def recordClick(self, pos):
+
+        # get clicked window title
         wnd = WindowFromPoint(pos)
         while GetParent(wnd):
             wnd = GetParent(wnd)
         title = GetWindowText(wnd)
+
         # do not record click on Python Shell, cmd line or taskbar windows
         if not title: return
         if "Python Shell" in title: return
         if "Operation Genius" in title: return
         wPos = winutil.ScreenToWindow(wnd, pos)
 
-        self.record(Click(title, wPos))
+        
+        click = Click(title, wPos)
+        # See if the operation can be converted to DoubleClick
+        if len(self.opList) > 0:
+            lastOp = self.opList[-1]
+            if lastOp.__class__.__name__ == 'Click':
+                if lastOp.equals(click) and \
+                   time.time() - self.lastClickTime < \
+                   self.DOUBLE_CLICK_INTERVAL:
+                    del self.opList[-1]
+                    self.record(DoubleClick(title, wPos))
+                    return
+        
+        self.lastClickTime = time.time()
+        self.record(click)
 
     def createCheckpoint(self, windowTitle, filename):
         path = self.imageFileToPath(filename)
@@ -63,6 +93,12 @@ class Recorder:
     def recordSnap(self, windowTitle, filename):
         path = self.imageFileToPath(filename)
         self.record(Snap(windowTitle, path))
+
+    def recordWinState(self, title, state):
+        self.record(WinState(title, state))
+
+    def recordKey(self, key, action):
+        self.record(Key(key, action))
 
     def recordResolution(self, resolution):
         self.record(Resolution(resolution))

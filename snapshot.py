@@ -10,6 +10,8 @@ def snapWindow(title, filepath):
     winutil.bringToForeground(hld)
 
     time.sleep(0.5)
+
+    winutil.avertCursor()
     
     # Alt + PrintScreen to capture app window
     win32api.keybd_event(win32con.VK_MENU, 0, 0, 0)
@@ -26,11 +28,17 @@ def snapWindow(title, filepath):
     if normalWindow:
         winutil.normalizeWindow(hld)
 
+    winutil.revertCursor()
+    
+    time.sleep(3) # Wait long enough for the clipboard to accept the new image
+    
     # Crop title bar and save picture to file
     im = ImageGrab.grabclipboard()
     w, h = im.size
     im.crop((0, 25, w, h)) \
       .save(filepath, 'PNG')
+
+tolerance = 10.0
 
 def compareSnapshots(filename, tempfile):
     o = Image.open(filename).histogram()
@@ -38,7 +46,7 @@ def compareSnapshots(filename, tempfile):
     
     result = math.sqrt(reduce(operator.add,
                               map(lambda a,b: (a-b)**2, o, t))/len(o))
-    return result == float(0)
+    return result < float(tolerance)
 
 if __name__ == '__main__':
-    print compareSnapshots("f1.png", "f2.png")
+    print compareSnapshots("checkpoint.gif", "filter_newfilter.gif")

@@ -1,5 +1,6 @@
 from pymouse import PyMouseEvent
 from recorder import Recorder
+import winutil
 import time, sys
 import cmd, shlex
 
@@ -132,7 +133,7 @@ class CLI(cmd.Cmd):
          recorder.recordCheckpoint(t_n[0], t_n[1])
       except:
          print "invalid argument"
-
+         
    def do_check(self, title_and_filename):
       """check [title] [filename]
       Snaps the window, creates an image and adds a
@@ -142,7 +143,38 @@ class CLI(cmd.Cmd):
          recorder.createCheckpoint(t_n[0], t_n[1])
       except:
          print "invalid argument"
+   
+   def do_maximize(self, title):
+      """maximize [title]
+      Maximize the window."""
+      recorder.recordWinState(title, "max")
 
+   def do_normalize(self, title):
+      """normalize [title]
+      Normalize the window."""
+      recorder.recordWinState(title, "norm")
+
+   def do_minimize(self, title):
+      """minimize [title]
+      Minimize the window."""
+      recorder.recordWinState(title, "min")
+
+   def do_keydown(self, key):
+      """keydown [key]
+      Add a Key operation to the list.
+      Press down the key.
+      Keys supported:
+         shift
+      """
+      recorder.recordKey(key, Recorder.KEY_DOWN)
+      
+   def do_keyup(self, key):
+      """keyup [key]
+      Add a Key operation to the list.
+      Release the key.
+      """
+      recorder.recordKey(key, Recorder.KEY_UP)
+   
    def do_resolution(self, w_h):
       """resolution [width] [height]
       Add a Resolution operation to the list.
@@ -185,9 +217,10 @@ cmdInterpreter = CLI()
 
 # if used in command line, execute
 # the one command given by the arguments
+import traceback
 args = sys.argv[1:]
 if len(args) > 0:
-   import traceback
+   
    try:
       cmd = ""
       for c in args:
@@ -199,7 +232,11 @@ if len(args) > 0:
    cmdInterpreter.onecmd("quit")
    
 else:
-   cmdInterpreter.cmdloop()
+   try:
+      cmdInterpreter.cmdloop()
+   except:
+      traceback.print_exc()
+      cmdInterpreter.onecmd("quit")
 
 
 #################################################################
