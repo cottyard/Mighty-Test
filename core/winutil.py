@@ -9,7 +9,7 @@ def getAllTitles(hwnd, lparam):
         titles.add(GetWindowText(hwnd))
 
 
-def clickOnWindow(hld, pos, times = 1):
+def clickOnWindow(hld, pos, times = 1, button = 1):
     cursor_pos = win32gui.GetCursorPos()
     win32api.SetCursorPos(pos)
 
@@ -25,9 +25,17 @@ def clickOnWindow(hld, pos, times = 1):
                              win32con.KEYEVENTF_KEYUP, 0)
     
     time.sleep(0.2)
+
+    if button == 1:
+        EVENT_1 = win32con.MOUSEEVENTF_LEFTDOWN
+        EVENT_2 = win32con.MOUSEEVENTF_LEFTUP
+    elif button == 2:
+        EVENT_1 = win32con.MOUSEEVENTF_RIGHTDOWN
+        EVENT_2 = win32con.MOUSEEVENTF_RIGHTUP
+    
     for i in range(times):
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, pos[0], pos[1],0,0)
-        win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, pos[0], pos[1],0,0)
+        win32api.mouse_event(EVENT_1, pos[0], pos[1],0,0)
+        win32api.mouse_event(EVENT_2, pos[0], pos[1],0,0)
 
     win32api.SetCursorPos(cursor_pos)
 
@@ -106,17 +114,20 @@ def WindowToScreen(wnd, pos):
 
 def getWindowHandle(title):
     EnumWindows(getAllTitles, 0)
+
+    title_bytes = title.encode('utf-8')
+
     for t in titles:
-        if title in t:
+        if title_bytes in t:
             return FindWindow(None, t)
     return None
 
-def clickInsideWindow(title, pos_relative, times = 1):
+def clickInsideWindow(title, pos_relative, times = 1, button = 1):
     wnd = getWindowHandle(title)
     if not wnd:
         return False
     pos = WindowToScreen(wnd, pos_relative)
-    clickOnWindow(wnd, pos, times)
+    clickOnWindow(wnd, pos, times, button)
     return True
 
 if __name__ == '__main__':

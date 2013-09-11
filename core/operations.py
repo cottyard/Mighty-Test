@@ -10,8 +10,8 @@ class Click:
         
     def play(self):
         if not winutil.clickInsideWindow(self.title, self.pos):
-            print self.title + ' does not exist.'
-            return
+            return "error: " + self.title + ' does not exist.'
+
     def equals(self, another_click):
         return self.title == another_click.title and \
                self.pos == another_click.pos
@@ -27,9 +27,13 @@ class Click:
 
 class DoubleClick(Click):
     def play(self):
-        if not winutil.clickInsideWindow(self.title, self.pos, 2):
-            print self.title + ' does not exist.'
-            return
+        if not winutil.clickInsideWindow(self.title, self.pos, times = 2):
+            return "error: " + self.title + ' does not exist.'
+
+class RightClick(Click):
+    def play(self):
+        if not winutil.clickInsideWindow(self.title, self.pos, button = 2):
+            return "error: " + self.title + ' does not exist.'
 
 class Interval:
     def __init__(self, interval = 0):
@@ -46,6 +50,35 @@ class Interval:
         self.interval = t
         return self
 
+class Wait:
+    def __init__(self, window_title = "", waiting_time = 0):
+        self.window_title = window_title
+        self.waiting_time = waiting_time
+
+    def play(self):
+        found = False
+        start_time = time.time()
+        while time.time() - start_time < self.waiting_time:
+            time.sleep(1)
+            h = winutil.getWindowHandle(self.window_title)
+            if h:
+                found = True
+                break
+
+        if not found:
+            return "error: window " + self.window_title + \
+                   " didn't show up in " + str(self.waiting_time) + \
+                   " seconds"
+
+    def script_out(self):
+        return str((self.window_title, self.waiting_time))
+
+    def script_in(self, script):
+        t = eval(script)
+        self.window_title = t[0]
+        self.waiting_time = t[1]
+        return self
+    
 class CheckPoint:
     def __init__(self, title = "", filename = ""):
         self.title = title
@@ -54,14 +87,14 @@ class CheckPoint:
     def play(self):
         if not os.path.exists(os.path.realpath(self.filename)):
             snapshot.snapWindow(self.title, self.filename)
-            return "check point image file " + self.filename + \
+            return "message: " + "check point image file " + self.filename + \
                    " doesn't exist and has been created"
             
         tempfile = 'snapshots/checkpoint.png'
         snapshot.snapWindow(self.title, tempfile)
 
         if not snapshot.compareSnapshots(self.filename, tempfile):
-            return "checkpoint fails: " + tempfile + \
+            return "error: " + "checkpoint fails: " + tempfile + \
                    " is inconsistent with " + self.filename
 
         # delete temp file
@@ -168,9 +201,9 @@ class Key: # We'll expand a keyboard module if this grows larger
     """
     keymask = dict()
     keymask["shift"] = win32con.VK_SHIFT
+    keymask["ctrl"] = win32con.VK_CONTROL
     
     def __init__(self, key = "", action = 1):
-        Key.keymask[key] # raise KeyError if key is not supported
         self.key = key
         self.action = action
 

@@ -7,11 +7,12 @@ import cmd, shlex
 class ClickEventListener(PyMouseEvent):
    def click(self, x, y, button, press):
       if press:
-         recorder.OnLeftDown((x, y))
+         if button == 1:
+            recorder.OnLeftDown((x, y))
+         elif button == 2:
+            recorder.OnRightDown((x, y))
 
 mouseListener = ClickEventListener()
-mouseListener.start()
-
 recorder = Recorder()
 
 class CLI(cmd.Cmd):
@@ -29,8 +30,9 @@ class CLI(cmd.Cmd):
 
    def do_play(self, interval):
       """play [interval]
-      Play the operation list. The argument is the time to wait
-      between operations(Interval operations not included).
+      Play the operation list to the editting point.
+      The argument is the time to wait between operations
+      (Interval operations not included).
 
       Omit the argument to use a default interval of 0.5s"""
       try:
@@ -165,6 +167,7 @@ class CLI(cmd.Cmd):
       Press down the key.
       Keys supported:
          shift
+         ctrl
       """
       recorder.recordKey(key, Recorder.KEY_DOWN)
       
@@ -213,30 +216,36 @@ class CLI(cmd.Cmd):
       mouseListener.stop()
       return True
 
-cmdInterpreter = CLI()
 
-# if used in command line, execute
-# the one command given by the arguments
-import traceback
-args = sys.argv[1:]
-if len(args) > 0:
+
+
+if __name__ == '__main__':
    
-   try:
-      cmd = ""
-      for c in args:
-         cmd += c + ' '
-      cmdInterpreter.onecmd(cmd)
-   except:
-      traceback.print_exc()
+   interpreter = CLI()
+   mouseListener.start()
+   
+   # if used in command line, execute
+   # the one command given by the arguments
+   import traceback
+   args = sys.argv[1:]
+   if len(args) > 0:
       
-   cmdInterpreter.onecmd("quit")
-   
-else:
-   try:
-      cmdInterpreter.cmdloop()
-   except:
-      traceback.print_exc()
-      cmdInterpreter.onecmd("quit")
+      try:
+         cmd = ""
+         for c in args:
+            cmd += c + ' '
+         interpreter.onecmd(cmd)
+      except:
+         traceback.print_exc()
+         
+      interpreter.onecmd("quit")
+      
+   else:
+      try:
+         interpreter.cmdloop()
+      except:
+         traceback.print_exc()
+         interpreter.onecmd("quit")
 
 
 #################################################################
