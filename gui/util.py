@@ -8,7 +8,6 @@ def pack(style, *windows):
             s.Add(w, flag = wx.EXPAND, proportion = 1)
         else:
             s.Add(w, flag = wx.EXPAND)
-        
     return s
 
 # the play result frame

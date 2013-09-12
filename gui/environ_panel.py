@@ -9,20 +9,17 @@ class EnvironPanel(wx.Panel):
 
         self.button_resolution = wx.Button(self, label = "Resolution")
 
-        self.input_width = wx.TextCtrl(self)
-        self.input_height = wx.TextCtrl(self)
+        self.input_width = wx.TextCtrl(self, size = (20, -1))
+        self.input_height = wx.TextCtrl(self, size = (20, -1))
 
         self.Bind(wx.EVT_BUTTON, self.OnResolution, self.button_resolution)
 
-        self.SetSizer(pack(wx.VERTICAL,
+        self.SetSizer(pack(wx.HORIZONTAL,
                            self.button_resolution,
-                           pack(wx.HORIZONTAL,
-                                wx.StaticText(self, label = "width: "),
-                                self.input_width),
-                           pack(wx.HORIZONTAL,
-                                wx.StaticText(self, label = "height: "),
-                                self.input_height)
-                           )
+                           wx.StaticText(self, label = "width: "),
+                           self.input_width,
+                           wx.StaticText(self, label = "height: "),
+                           self.input_height)
                       )
         
     @gui_updator

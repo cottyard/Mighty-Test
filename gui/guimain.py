@@ -12,6 +12,8 @@ class MainFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, "Operation Genius",
                           style = wx.DEFAULT_FRAME_STYLE)
+                          #style = wx.DEFAULT_FRAME_STYLE ^ \
+                          #(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
 
         self.panel = wx.Panel(self)
 
@@ -46,8 +48,9 @@ class MainFrame(wx.Frame):
             sizer.AddGrowableRow(i)
 
         sizer.AddGrowableCol(0)
-        
+
         self.panel.SetSizer(sizer)
+        
         self.panel.Fit()
         self.Fit()
         self.SetMinSize(self.GetSize())
@@ -107,7 +110,7 @@ def StartGUI():
     finally:
         sys.stdout = sys.__stdout__
         sys.stderr = sys.__stderr__
-        
+
 ##    try:
 ##    
 ##    except:

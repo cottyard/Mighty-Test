@@ -42,10 +42,7 @@ class MousePanel(wx.Panel):
 
     @gui_updator
     def mouseClick(self, x, y, button, press):
-        if press:
-            if button == 1:
-                if not delegate.recorder.OnLeftDown((x,y)):
-                    return 'pass'
-            elif button == 2:
-                if not delegate.recorder.OnRightDown((x,y)):
-                    return 'pass'
+        if button == 1:
+            delegate.recorder.OnMouseLeft((x,y), press)
+        elif button == 2:
+            delegate.recorder.OnMouseRight((x,y), press)

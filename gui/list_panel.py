@@ -10,7 +10,16 @@ class ListPanel(wx.Panel):
     def __init__(self, parent):
         wx.Panel.__init__(self, parent)
 
-        self.list = wx.ListBox(self, style = wx.LB_EXTENDED)
+        class ShrinkableListBox(wx.ListBox):
+            def __init__(self, parent, style):
+                wx.ListBox.__init__(self, parent, style = style)
+                self.Bind(wx.EVT_SIZE, self.OnSize)
+            def OnSize(self, event):
+                self.SetMinSize(wx.Size(1, 1))
+                event.Skip()
+                
+        self.list = ShrinkableListBox(self, style = wx.LB_EXTENDED |
+                                                    wx.LB_HSCROLL)
 
         self.button_play = wx.Button(self, label = "Play")
         self.button_delete = wx.Button(self, label = "Delete")
@@ -26,6 +35,8 @@ class ListPanel(wx.Panel):
         self.Bind(wx.EVT_BUTTON, self.OnDelete, self.button_delete)
         self.Bind(wx.EVT_BUTTON, self.OnSave, self.button_save)
         self.Bind(wx.EVT_TEXT, self.OnEdit, self.textctrl_edit)
+        
+        self.Bind(wx.EVT_LISTBOX, self.OnSelect, self.list)
 
         self.SetSizer(pack(wx.VERTICAL,
                            self.list,
@@ -46,7 +57,9 @@ class ListPanel(wx.Panel):
         self.list.Set(l)
         if edit < len(l):
             self.list.SetSelection(edit)
-        
+        else:
+            self.list.SetFirstItem(self.list.GetCount() - 1)
+            
     # callbacks
     def OnEdit(self, event):
         try:
@@ -83,6 +96,9 @@ class ListPanel(wx.Panel):
             delegate.recorder.setEdit(i + 1)
             delegate.recorder.erase()
         delegate.recorder.setEdit(-1)
+
+    def OnSelect(self, event):
+        self.textctrl_edit.SetValue(str(self.list.GetSelections()[0]))
 
     def OnSave(self, event):
         dlg = wx.FileDialog(self, "Save operation list...",

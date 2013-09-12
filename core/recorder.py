@@ -5,13 +5,22 @@ import winutil
 import snapshot
 import screenresolution
 
-from operations import CheckPoint, Click, RightClick, DoubleClick, Interval, \
-                       Wait, Snap, WinState, Resolution, Orient, Key
+from exceptions import WindowNotFound
+
+from operations import CheckPoint, Snap, \
+                       Click, RightClick, DoubleClick, \
+                       Hold, Drag, \
+                       Interval, Wait, \
+                       WinState, Resolution, \
+                       Orient, \
+                       Key, TypeString
 
 operation_classes = dict()
 operation_classes['Click'] = Click
 operation_classes['RightClick'] = RightClick
 operation_classes['DoubleClick'] = DoubleClick
+operation_classes['Hold'] = Hold
+operation_classes['Drag'] = Drag
 operation_classes['Interval'] = Interval
 operation_classes['Wait'] = Wait
 operation_classes['CheckPoint'] = CheckPoint
@@ -20,19 +29,24 @@ operation_classes['Resolution'] = Resolution
 operation_classes['Orient'] = Orient
 operation_classes['WinState'] = WinState
 operation_classes['Key'] = Key
-
+operation_classes['TypeString'] = TypeString
 
 class Recorder:
     
     KEY_DOWN = 1
     KEY_UP = 0
     DOUBLE_CLICK_INTERVAL = 0.5
+    HOLD_INTERVAL = 1
 
     opList = []
     editPos = 0
     resolution = (0, 0)
 
     lastClickTime = 0
+    
+    leftDownTime = 0
+    leftDownTitle = ""
+    leftDownPos = (0, 0)
 
     def __init__(self):
         if not os.path.exists(os.path.realpath('snapshots')):
@@ -41,12 +55,30 @@ class Recorder:
             os.mkdir(os.path.realpath('lists'))
 
     # interfaces
-    
-    def OnLeftDown(self, pos):
-        return self.recordClick(pos, 1)
+    """
+        Need to refactor these mouse motion processing code sometime
+    """
+    def OnMouseLeft(self, pos, press):
+        title, wPos = self.getTitleAndPos(pos)
+        if press:
+            self.leftDownTime = time.time()
+            self.leftDownTitle = title
+            self.leftDownPos = wPos
+        else:
+            if wPos == self.leftDownPos:
+                interval = time.time() - self.leftDownTime
+                if interval < self.HOLD_INTERVAL:
+                    self.recordClick(title, wPos, 1)
+                else: # not released immediately: Hold
+                    self.recordHold(title, wPos, round(interval, 2))
+            else: # released at a different place: Drag
+                self.recordDrag(self.leftDownTitle, self.leftDownPos,
+                                title, wPos)
 
-    def OnRightDown(self, pos):
-        return self.recordClick(pos, 2)
+    def OnMouseRight(self, pos, press):
+        title, wPos = self.getTitleAndPos(pos)
+        if press:
+            self.recordClick(title, wPos, 2)
 
     def recordInterval(self, itv):
         self.record(Interval(itv))
@@ -73,6 +105,9 @@ class Recorder:
     def recordKey(self, key, action):
         self.record(Key(key, action))
 
+    def recordTypeString(self, string):
+        self.record(TypeString(string))
+
     def recordResolution(self, resolution):
         self.record(Resolution(resolution))
 
@@ -82,14 +117,19 @@ class Recorder:
 
     def play(self, interval = 0.5):
         self.beforePlay()
-        for i in range(len(self.opList)):
-            op = self.opList[i]
-            e = op.play()
-            if e:
-                print e
-                if e.startswith("error:"):
-                    break
-            time.sleep(interval)
+        try:
+            for i in range(len(self.opList)):
+                op = self.opList[i]
+                e = op.play()
+                if e:
+                    print e
+                    if e.startswith("error:"):
+                        break
+                time.sleep(interval)
+                
+        except WindowNotFound as e:
+            print "error: cannot find window", e
+            
         self.afterPlay()
         
     def erase(self, n = 1):
@@ -136,23 +176,28 @@ class Recorder:
             self.saveFile(f)
 
     # private methods
-    def recordClick(self, pos, button):
-        # get clicked window title
+    def getTitleAndPos(self, pos):
         wnd = WindowFromPoint(pos)
         while GetParent(wnd):
             wnd = GetParent(wnd)
         title = GetWindowText(wnd)
-
+        wPos = winutil.ScreenToWindow(wnd, pos)
+        return (title, wPos)
+    
+    def validTitle(self, title):
         # do not record click on Python Shell, cmd line or taskbar windows
         if not title: return False
         if "Python Shell" in title: return False
         if "Operation Genius" in title: return False
-        wPos = winutil.ScreenToWindow(wnd, pos)
-
+        return True
+        
+    def recordClick(self, title, pos, button):
+        if not self.validTitle(title): return
         if button == 1:
-            click = Click(title, wPos)
+            click = Click(title, pos)
             # See if the operation can be converted to DoubleClick
             if len(self.opList) > 0:
+                lastOp = None
                 if self.editPos > 0:
                     lastOp = self.opList[self.editPos - 1]
                 if lastOp.__class__.__name__ == 'Click':
@@ -161,17 +206,22 @@ class Recorder:
                        self.DOUBLE_CLICK_INTERVAL:
                         del self.opList[self.editPos - 1]
                         self.editPos -= 1
-                        self.record(DoubleClick(title, wPos))
-                        return True
+                        self.record(DoubleClick(title, pos))
         
             self.lastClickTime = time.time()
             self.record(click)
-            return True
             
         elif button == 2:
-            self.record(RightClick(title, wPos))
-            return True
+            self.record(RightClick(title, pos))
 
+    def recordHold(self, title, pos, duration):
+        if not self.validTitle(title): return
+        self.record(Hold(title, pos, duration))
+
+    def recordDrag(self, title_1, pos_1, title_2, pos_2):
+        if not self.validTitle(title_1): return
+        if not self.validTitle(title_2): return
+        self.record(Drag(title_1, pos_1, title_2, pos_2))
     
     def loadFile(self, f):
         self.clear()

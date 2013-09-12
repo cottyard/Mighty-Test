@@ -2,20 +2,26 @@ from win32gui import *
 import win32gui, win32api, win32con
 import time
 
+from exceptions import WindowNotFound
+"""
+My ignorance of design caused a problem here.
+This module is small at first and is getting ugly as it grows.
+Refactor it sometime
+"""
+
+
+
 titles = set()
 
 def getAllTitles(hwnd, lparam):
     if IsWindow(hwnd) and IsWindowEnabled(hwnd) and IsWindowVisible(hwnd):
         titles.add(GetWindowText(hwnd))
 
+def mouseEventOnWindow(hld, pos, times = 1, button = 1,
+                       down = True, up = True):
 
-def clickOnWindow(hld, pos, times = 1, button = 1):
-    cursor_pos = win32gui.GetCursorPos()
     win32api.SetCursorPos(pos)
 
-    
-    # win32gui.SetActiveWindow(hld)
-    # Press Alt or SetForegroundWindow() fails on occassions. I don't know why.
     if win32gui.GetForegroundWindow() != hld:
         win32api.keybd_event(win32con.VK_MENU, 0, \
                              win32con.KEYEVENTF_EXTENDEDKEY, 0)
@@ -34,17 +40,16 @@ def clickOnWindow(hld, pos, times = 1, button = 1):
         EVENT_2 = win32con.MOUSEEVENTF_RIGHTUP
     
     for i in range(times):
-        win32api.mouse_event(EVENT_1, pos[0], pos[1],0,0)
-        win32api.mouse_event(EVENT_2, pos[0], pos[1],0,0)
+        if down:
+            win32api.mouse_event(EVENT_1, pos[0], pos[1],0,0)
+        if up:
+            win32api.mouse_event(EVENT_2, pos[0], pos[1],0,0)
 
-    win32api.SetCursorPos(cursor_pos)
 
 cursor_pos = (0, 0)
 def avertCursor():
     global cursor_pos
     cursor_pos = win32gui.GetCursorPos()
-    # don't move to the bottom right corner of the screen
-    # will cause windows 7 to show desktop
     win32api.SetCursorPos((0, win32api.GetSystemMetrics(1)))
 
 def revertCursor():
@@ -61,12 +66,12 @@ def isMaximized(hld):
 def clickOnMaximizeButton(hld):
     rect = win32gui.GetWindowRect(hld)
     btn_pos = (rect[2]-70, rect[1]+10)
-    clickOnWindow(hld, btn_pos)
+    mouseEventOnWindow(hld, btn_pos)
 
 def clickOnMinimizeButton(hld):
     rect = win32gui.GetWindowRect(hld)
     btn_pos = (rect[2]-100, rect[1]+10)
-    clickOnWindow(hld, btn_pos)
+    mouseEventOnWindow(hld, btn_pos)
 
 def maximizeWindow(hld):
     if not hld: return
@@ -111,8 +116,9 @@ def WindowToScreen(wnd, pos):
     point = getReference(wnd)
     return (point[0] + pos[0], point[1] + pos[1])
 
-
 def getWindowHandle(title):
+    """raises WindowNotFound"""
+    
     EnumWindows(getAllTitles, 0)
 
     title_bytes = title.encode('utf-8')
@@ -120,15 +126,23 @@ def getWindowHandle(title):
     for t in titles:
         if title_bytes in t:
             return FindWindow(None, t)
-    return None
+        
+    raise WindowNotFound(title)
 
 def clickInsideWindow(title, pos_relative, times = 1, button = 1):
     wnd = getWindowHandle(title)
-    if not wnd:
-        return False
     pos = WindowToScreen(wnd, pos_relative)
-    clickOnWindow(wnd, pos, times, button)
-    return True
+    mouseEventOnWindow(wnd, pos, times, button)
+
+def mouseDownInsideWindow(title, pos_relative, button = 1):
+    wnd = getWindowHandle(title)
+    pos = WindowToScreen(wnd, pos_relative)
+    mouseEventOnWindow(wnd, pos, button = button, up = False)
+
+def mouseUpInsideWindow(title, pos_relative, button = 1):
+    wnd = getWindowHandle(title)
+    pos = WindowToScreen(wnd, pos_relative)
+    mouseEventOnWindow(wnd, pos, button = button, down = False)
 
 if __name__ == '__main__':
     normalizeWindow(getWindowHandle("winutil.py"))

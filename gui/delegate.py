@@ -16,8 +16,6 @@ def gui_updator(fn):
         r = fn(*arg, **kw)
         if r == 'daemon':
             wx.CallLater(500, gui.update)
-        elif r == 'pass':
-            pass
         else:
             gui.update()
     return wrapper

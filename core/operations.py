@@ -2,15 +2,16 @@ import os, time
 import winutil
 import snapshot
 import screenresolution
-        
+
+from exceptions import WindowNotFound
+
 class Click:
     def __init__(self, title = "", pos = (0, 0)):
         self.title = title
         self.pos = pos
         
     def play(self):
-        if not winutil.clickInsideWindow(self.title, self.pos):
-            return "error: " + self.title + ' does not exist.'
+        winutil.clickInsideWindow(self.title, self.pos)
 
     def equals(self, another_click):
         return self.title == another_click.title and \
@@ -27,13 +28,56 @@ class Click:
 
 class DoubleClick(Click):
     def play(self):
-        if not winutil.clickInsideWindow(self.title, self.pos, times = 2):
-            return "error: " + self.title + ' does not exist.'
+        winutil.clickInsideWindow(self.title, self.pos, times = 2)
 
 class RightClick(Click):
     def play(self):
-        if not winutil.clickInsideWindow(self.title, self.pos, button = 2):
-            return "error: " + self.title + ' does not exist.'
+        winutil.clickInsideWindow(self.title, self.pos, button = 2)
+
+class Drag:
+    def __init__(self, title_1 = "", pos_1 = (0, 0),
+                       title_2 = "", pos_2 = (0, 0)):
+        self.title_1 = title_1
+        self.title_2 = title_2
+        self.pos_1 = pos_1
+        self.pos_2 = pos_2
+
+    def play(self):
+        winutil.mouseDownInsideWindow(self.title_1, self.pos_1)
+        winutil.mouseUpInsideWindow(self.title_2, self.pos_2)
+
+    def script_out(self):
+        return str((self.title_1, self.pos_1,
+                    self.title_2, self.pos_2))
+
+    def script_in(self, script):
+        t = eval(script)
+        self.title_1 = t[0]
+        self.pos_1 = t[1]
+        self.title_2 = t[2]
+        self.pos_2 = t[3]
+        return self
+
+class Hold:
+    def __init__(self, title = "", pos = (0, 0), duration = 0):
+        self.title = title
+        self.pos = pos
+        self.duration = duration
+
+    def play(self):
+        winutil.mouseDownInsideWindow(self.title, self.pos)
+        time.sleep(self.duration)
+        winutil.mouseUpInsideWindow(self.title, self.pos)
+
+    def script_out(self):
+        return str((self.title, self.pos, self.duration))
+
+    def script_in(self, script):
+        t = eval(script)
+        self.title = t[0]
+        self.pos = t[1]
+        self.duration = t[2]
+        return self
 
 class Interval:
     def __init__(self, interval = 0):
@@ -60,10 +104,12 @@ class Wait:
         start_time = time.time()
         while time.time() - start_time < self.waiting_time:
             time.sleep(1)
-            h = winutil.getWindowHandle(self.window_title)
-            if h:
+            try:
+                winutil.getWindowHandle(self.window_title)
+            except WindowNotFound:
+                pass
+            else:
                 found = True
-                break
 
         if not found:
             return "error: window " + self.window_title + \
@@ -115,11 +161,7 @@ class Snap:
         self.filename = filename
 
     def play(self):
-        try:
-            snapshot.snapWindow(self.title, self.filename)
-        except IOError:
-            import traceback
-            traceback.print_exc()
+        snapshot.snapWindow(self.title, self.filename)
 
     def script_out(self):
         return str((self.title, self.filename))
@@ -194,24 +236,19 @@ class Orient:
         return self
 
 
-import win32con, win32api
+import keyutil
+
 class Key: # We'll expand a keyboard module if this grows larger
     """
     Press or release a key. 1 for down, 0 for up.
     """
-    keymask = dict()
-    keymask["shift"] = win32con.VK_SHIFT
-    keymask["ctrl"] = win32con.VK_CONTROL
-    
     def __init__(self, key = "", action = 1):
         self.key = key
         self.action = action
 
     def play(self):
-        win32api.keybd_event(Key.keymask[self.key], 0, \
-                             0 if self.action \
-                             else win32con.KEYEVENTF_KEYUP, 0)
-
+        keyutil.toggle_key(self.key, self.action)
+        
     def script_out(self):
         return str((self.key, self.action))
 
@@ -219,4 +256,19 @@ class Key: # We'll expand a keyboard module if this grows larger
         t = eval(script)
         self.key = t[0]
         self.action = t[1]
+        return self
+
+class TypeString:
+    def __init__(self, string = ""):
+        self.string = string
+
+    def play(self):      
+        for c in self.string:
+            keyutil.tap_key(c)
+
+    def script_out(self):
+        return self.string
+    
+    def script_in(self, script):
+        self.string = script
         return self
