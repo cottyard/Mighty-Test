@@ -75,22 +75,15 @@ def clickOnMinimizeButton(hld):
 
 def maximizeWindow(hld):
     if not hld: return
-    if isMaximized(hld):
-        return False
-    clickOnMaximizeButton(hld)
-    return True
+    win32gui.ShowWindow(h, win32con.SW_MAXIMIZE)
 
 def normalizeWindow(hld):
     if not hld: return
-    if not isMaximized(hld):
-        return False
-    clickOnMaximizeButton(hld)
-    return True
+    win32gui.ShowWindow(h, win32con.SW_NORMAL)
 
 def minimizeWindow(hld):
     if not hld: return
-    clickOnMinimizeButton(hld)
-    return True
+    win32gui.ShowWindow(h, win32con.SW_MINIMIZE)
 
 orientation = 'tl'
 
@@ -121,7 +114,12 @@ def getWindowHandle(title):
     
     EnumWindows(getAllTitles, 0)
 
-    title = title.decode('utf-8', errors = "ignore")
+    try:
+        title = title.decode('utf-8', errors = "ignore")
+    except UnicodeDecodeError:
+        title = title.decode('utf-16', errors = "ignore")
+    except UnicodeDecodeError:
+        pass
 
     for t in titles:
         if title in t:
