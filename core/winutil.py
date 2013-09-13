@@ -121,12 +121,12 @@ def getWindowHandle(title):
     
     EnumWindows(getAllTitles, 0)
 
-    title_bytes = title.encode('utf-8')
+    title = title.decode('utf-8', errors = "ignore")
 
     for t in titles:
-        if title_bytes in t:
+        if title in t:
             return FindWindow(None, t)
-        
+
     raise WindowNotFound(title)
 
 def clickInsideWindow(title, pos_relative, times = 1, button = 1):

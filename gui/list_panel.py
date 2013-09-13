@@ -3,8 +3,9 @@ from util import pack, ResultFrame
 import delegate
 from delegate import gui_updator, daemon
 
-
 class ListPanel(wx.Panel):
+
+    BUTTON_SIZE = (55, -1)
     wildcard = "Operation files (*.op)|*.op|All files (*.*)|*.*"
     
     def __init__(self, parent):
@@ -21,11 +22,11 @@ class ListPanel(wx.Panel):
         self.list = ShrinkableListBox(self, style = wx.LB_EXTENDED |
                                                     wx.LB_HSCROLL)
 
-        self.button_play = wx.Button(self, label = "Play")
-        self.button_delete = wx.Button(self, label = "Delete")
-        self.button_clear = wx.Button(self, label = "Clear")
-        self.button_save = wx.Button(self, label = "Save")
-        self.button_load = wx.Button(self, label = "Load")
+        self.button_play = wx.Button(self, label = "Play", size = self.BUTTON_SIZE)
+        self.button_delete = wx.Button(self, label = "Delete", size = self.BUTTON_SIZE)
+        self.button_clear = wx.Button(self, label = "Clear", size = self.BUTTON_SIZE)
+        self.button_save = wx.Button(self, label = "Save", size = self.BUTTON_SIZE)
+        self.button_load = wx.Button(self, label = "Load", size = self.BUTTON_SIZE)
         self.textctrl_edit = wx.TextCtrl(self, size = (30, -1))
         self.textctrl_edit.SetMaxLength(3)
 
@@ -58,7 +59,10 @@ class ListPanel(wx.Panel):
         if edit < len(l):
             self.list.SetSelection(edit)
         else:
-            self.list.SetFirstItem(self.list.GetCount() - 1)
+            try:
+                self.list.SetFirstItem(self.list.GetCount() - 1)
+            except:
+                pass
             
     # callbacks
     def OnEdit(self, event):
@@ -80,12 +84,17 @@ class ListPanel(wx.Panel):
     @daemon
     def OnPlay(self, event):
         self.resultFrame.Show()
-        print "---------- START ----------\n"
-        delegate.recorder.play()
-        print "\n---------- DONE ----------\n\n"
+        delegate.gui.toggleOnTop()
+        try:
+            print "---------- START ----------\n"
+            delegate.recorder.play()
+            print "\n---------- DONE ----------\n\n"
+        finally:
+            delegate.gui.toggleOnTop()
 
     @gui_updator
     def OnClear(self, event):
+        self.textctrl_edit.SetValue('')
         delegate.recorder.clear()
 
     @gui_updator
@@ -98,7 +107,12 @@ class ListPanel(wx.Panel):
         delegate.recorder.setEdit(-1)
 
     def OnSelect(self, event):
-        self.textctrl_edit.SetValue(str(self.list.GetSelections()[0]))
+        try:
+            s = self.list.GetSelections()
+            if len(s) == 1:
+                self.textctrl_edit.SetValue(str(s[0]))
+        except IndexError:
+            pass
 
     def OnSave(self, event):
         dlg = wx.FileDialog(self, "Save operation list...",

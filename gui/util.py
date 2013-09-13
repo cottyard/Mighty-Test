@@ -13,16 +13,17 @@ def pack(style, *windows):
 # the play result frame
 class ResultFrame(wx.Frame):
     def __init__(self, parent, title):
-        wx.Frame.__init__(self, parent, -1, title)
+        wx.Frame.__init__(self, parent, -1, title, \
+                          style = wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
         panel = wx.Panel(self, -1)
         sizer = wx.BoxSizer(wx.VERTICAL)
         self.result = wx.TextCtrl(panel, -1, "",
                                   style = wx.TE_MULTILINE | wx.TE_READONLY)
         sizer.Add(self.result, flag = wx.EXPAND, proportion = 1)
         panel.SetSizer(sizer)
-        self.Bind(wx.EVT_CLOSE, self.OnExit)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
         
-    def OnExit(self, event):
+    def OnClose(self, event):
         self.Hide()
 
     def write(self, msg):

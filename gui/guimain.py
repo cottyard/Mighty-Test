@@ -11,9 +11,8 @@ import delegate
 class MainFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, "Operation Genius",
-                          style = wx.DEFAULT_FRAME_STYLE)
-                          #style = wx.DEFAULT_FRAME_STYLE ^ \
-                          #(wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+                          #style = wx.DEFAULT_FRAME_STYLE)
+                          style = wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
 
         self.panel = wx.Panel(self)
 
@@ -72,7 +71,7 @@ class MainFrame(wx.Frame):
         self.list_panel.updateList(l, edit)
     
     def OnExit(self, event):
-        delegate.listener.stop()
+        #delegate.listener.stop()
         event.Skip()
 
 class MyApp(wx.App):
@@ -84,11 +83,20 @@ class MyApp(wx.App):
         delegate.listener.register_click(
             self.mainframe.mouse_panel.OnMouseEvent)
 
+        self.out = sys.stdout
+        self.err = sys.stderr
+
         sys.stdout = self.mainframe.list_panel.resultFrame
         sys.stderr = self.mainframe.list_panel.resultFrame
 
         self.mainframe.Show()
         return True
+
+    def OnExit(self):
+        delegate.listener.stop()
+        sys.stdout = self.out
+        sys.stderr = self.err
+        wx.Exit()
     
     def getMainWindow(self):
         return self.mainframe
@@ -97,9 +105,20 @@ class MyApp(wx.App):
 app = None
 
 class GuiMeta:
+    
     def update(self):
         app.getMainWindow().updateGUI()
+        
+    def toggleOnTop(self):
+        
+        app.getMainWindow().list_panel \
+           .resultFrame.ToggleWindowStyle(wx.STAY_ON_TOP)
+        app.getMainWindow().list_panel \
+           .resultFrame.Refresh()
 
+        app.getMainWindow().ToggleWindowStyle(wx.STAY_ON_TOP)
+        app.getMainWindow().Refresh()
+        
 def InitGUI():
     global app
     app = MyApp(0)
@@ -108,9 +127,13 @@ def StartGUI():
     try:
         app.MainLoop()
     finally:
-        sys.stdout = sys.__stdout__
-        sys.stderr = sys.__stderr__
+        print "Exit"
 
+if __name__ == '__main__':
+    app = wx.PySimpleApp()
+    MainFrame(None, -1).Show()
+    app.MainLoop()
+    print "Stop"
 ##    try:
 ##    
 ##    except:

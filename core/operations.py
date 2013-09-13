@@ -110,6 +110,7 @@ class Wait:
                 pass
             else:
                 found = True
+                break
 
         if not found:
             return "error: window " + self.window_title + \

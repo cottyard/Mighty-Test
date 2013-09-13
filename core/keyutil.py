@@ -30,6 +30,6 @@ keymask["shift"] = win32con.VK_SHIFT
 keymask["ctrl"] = win32con.VK_CONTROL
 
 def toggle_key(keyname, action):
-    win32api.keybd_event(Key.keymask[keyname], 0, \
+    win32api.keybd_event(keymask[keyname], 0, \
                          0 if action \
                          else win32con.KEYEVENTF_KEYUP, 0)
