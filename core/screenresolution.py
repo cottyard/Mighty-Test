@@ -1,10 +1,20 @@
 import win32api, win32con
 
 def getRes():
-    winDev = win32api.EnumDisplayDevices(DevNum = 0)
-    winSettings = win32api.EnumDisplaySettings(winDev.DeviceName, \
-                                               win32con.ENUM_CURRENT_SETTINGS)
-    return (winSettings.PelsWidth, winSettings.PelsHeight)
+    i = 0
+    while i < 10:
+        try:
+            winDev = win32api.EnumDisplayDevices(DevNum = i)
+            winSettings = win32api.EnumDisplaySettings(winDev.DeviceName, \
+                                                       win32con.ENUM_CURRENT_SETTINGS)
+        except Exception:
+            i += 1
+            continue
+        else:
+            return (winSettings.PelsWidth, winSettings.PelsHeight)
+            
+
+    raise Exception("can't find a display device")
 
 def convert(res):
     winDev = win32api.EnumDisplayDevices(DevNum = 0)

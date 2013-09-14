@@ -118,11 +118,9 @@ def getWindowHandle(title):
         title = title.decode('utf-8', errors = "ignore")
     except UnicodeDecodeError:
         title = title.decode('utf-16', errors = "ignore")
-    except UnicodeDecodeError:
-        pass
 
     for t in titles:
-        if title in t:
+        if title in t.decode('utf-8', errors = 'ignore'):
             return FindWindow(None, t)
 
     raise WindowNotFound(title)
