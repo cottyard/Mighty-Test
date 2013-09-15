@@ -2,7 +2,7 @@ from win32gui import *
 import win32gui, win32api, win32con
 import time
 
-from exceptions import WindowNotFound
+from coreexceptions import WindowNotFound
 """
 My ignorance of design caused a problem here.
 This module is small at first and is getting ugly as it grows.
@@ -75,15 +75,15 @@ def clickOnMinimizeButton(hld):
 
 def maximizeWindow(hld):
     if not hld: return
-    win32gui.ShowWindow(h, win32con.SW_MAXIMIZE)
+    win32gui.ShowWindow(hld, win32con.SW_MAXIMIZE)
 
 def normalizeWindow(hld):
     if not hld: return
-    win32gui.ShowWindow(h, win32con.SW_NORMAL)
+    win32gui.ShowWindow(hld, win32con.SW_NORMAL)
 
 def minimizeWindow(hld):
     if not hld: return
-    win32gui.ShowWindow(h, win32con.SW_MINIMIZE)
+    win32gui.ShowWindow(hld, win32con.SW_MINIMIZE)
 
 orientation = 'tl'
 

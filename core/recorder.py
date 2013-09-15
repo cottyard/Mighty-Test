@@ -5,7 +5,7 @@ import winutil
 import snapshot
 import screenresolution
 
-from exceptions import WindowNotFound
+from coreexceptions import WindowNotFound
 
 from operations import CheckPoint, Snap, \
                        Click, RightClick, DoubleClick, \
@@ -180,6 +180,7 @@ class Recorder:
         wnd = WindowFromPoint(pos)
         while GetParent(wnd):
             wnd = GetParent(wnd)
+            
         title = GetWindowText(wnd)
         wPos = winutil.ScreenToWindow(wnd, pos)
         return (title, wPos)
@@ -207,7 +208,8 @@ class Recorder:
                         del self.opList[self.editPos - 1]
                         self.editPos -= 1
                         self.record(DoubleClick(title, pos))
-        
+                        return
+
             self.lastClickTime = time.time()
             self.record(click)
             
