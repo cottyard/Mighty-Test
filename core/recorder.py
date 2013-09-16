@@ -58,8 +58,9 @@ class Recorder:
     """
         Need to refactor these mouse motion processing code sometime
     """
-    def OnMouseLeft(self, pos, press):
-        title, wPos = self.getTitleAndPos(pos)
+    def OnMouseLeft(self, pos, press, windowname = ''):
+        title, wPos = self.getTitleAndPos(pos, windowname)
+
         if press:
             self.leftDownTime = time.time()
             self.leftDownTitle = title
@@ -75,8 +76,10 @@ class Recorder:
                 self.recordDrag(self.leftDownTitle, self.leftDownPos,
                                 title, wPos)
 
-    def OnMouseRight(self, pos, press):
-        title, wPos = self.getTitleAndPos(pos)
+    def OnMouseRight(self, pos, press, windowname = ''):
+        title, wPos = self.getTitleAndPos(pos, windowname)
+        if windowname:
+            title = windowname
         if press:
             self.recordClick(title, wPos, 2)
 
@@ -176,9 +179,17 @@ class Recorder:
             self.saveFile(f)
 
     # private methods
-    def getTitleAndPos(self, pos):
+    def getTitleAndPos(self, pos, windowname = ""):
+        """return the title of the top-level window;
+        if windowname is given, return the given window title
+        when the name is found in the window inheritance chain"""
+        
         wnd = WindowFromPoint(pos)
-        while GetParent(wnd):
+        while True:
+            if not GetParent(wnd): break
+            if windowname:
+                if windowname in GetWindowText(wnd):
+                    break
             wnd = GetParent(wnd)
             
         title = GetWindowText(wnd)

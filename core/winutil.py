@@ -120,7 +120,8 @@ def getWindowHandle(title):
         title = title.decode('utf-16', errors = "ignore")
 
     for t in titles:
-        if title in t.decode('utf-8', errors = 'ignore'):
+        ut = t.decode('gb2312', errors = 'ignore')
+        if title in ut:
             return FindWindow(None, t)
 
     raise WindowNotFound(title)

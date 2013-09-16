@@ -3,7 +3,7 @@ import winutil
 import snapshot
 import screenresolution
 
-from exceptions import WindowNotFound
+from coreexceptions import WindowNotFound
 
 class Click:
     def __init__(self, title = "", pos = (0, 0)):

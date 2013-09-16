@@ -14,13 +14,20 @@ class MousePanel(wx.Panel):
         self.orientationFlag = ['tl','tr','bl','br']
         self.choice_orient = wx.Choice(self, choices = self.orientationList)
         self.choice_orient.SetSelection(0)
+        self.textctrl_windowname = wx.TextCtrl(self)
 
         self.Bind(wx.EVT_BUTTON, self.OnStartStop, self.button_startstop)
         self.Bind(wx.EVT_CHOICE, self.OnChoice, self.choice_orient)
 
-        self.SetSizer(pack(wx.HORIZONTAL,
-                           self.button_startstop,
-                           self.choice_orient))
+        self.SetSizer(pack(wx.VERTICAL,
+                           pack(wx.HORIZONTAL,
+                                self.button_startstop,
+                                self.choice_orient),
+                           pack(wx.HORIZONTAL,
+                                wx.StaticText(self, label = "window name: "),
+                                self.textctrl_windowname)
+                          )
+                      )
 
     def OnStartStop(self, event):
         if self.running:
@@ -42,7 +49,8 @@ class MousePanel(wx.Panel):
 
     @gui_updator
     def mouseClick(self, x, y, button, press):
+        windowname = self.textctrl_windowname.GetValue()
         if button == 1:
-            delegate.recorder.OnMouseLeft((x,y), press)
+            delegate.recorder.OnMouseLeft((x,y), press, windowname)
         elif button == 2:
-            delegate.recorder.OnMouseRight((x,y), press)
+            delegate.recorder.OnMouseRight((x,y), press, windowname)
