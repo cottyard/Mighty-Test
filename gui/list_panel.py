@@ -38,6 +38,8 @@ class ListPanel(wx.Panel):
         self.Bind(wx.EVT_TEXT, self.OnEdit, self.textctrl_edit)
         
         self.Bind(wx.EVT_LISTBOX, self.OnSelect, self.list)
+        self.Bind(wx.EVT_LISTBOX_DCLICK, self.OnAnnotate, self.list)
+        self.Bind(wx.EVT_CONTEXT_MENU, self.OnRightClick, self.list)
 
         self.SetSizer(pack(wx.VERTICAL,
                            self.list,
@@ -93,6 +95,21 @@ class ListPanel(wx.Panel):
             delegate.gui.toggleOnTop()
 
     @gui_updator
+    def OnAnnotate(self, event):
+        s = event.GetSelection()
+        dialog = wx.TextEntryDialog(None, "Annotation: " ,
+                                    "Annotate operation " + str(s),
+                                    "", style=wx.OK|wx.CANCEL)
+        ann = None
+        if dialog.ShowModal() == wx.ID_OK: 
+            ann = dialog.GetValue() 
+        dialog.Destroy()
+        if ann:
+            delegate.recorder.setEdit(s)
+            delegate.recorder.annotate(ann)
+            delegate.recorder.setEdit(-1)
+
+    @gui_updator
     def OnClear(self, event):
         self.textctrl_edit.SetValue('')
         delegate.recorder.clear()
@@ -113,6 +130,9 @@ class ListPanel(wx.Panel):
                 self.textctrl_edit.SetValue(str(s[0]))
         except IndexError:
             pass
+
+    def OnRightClick(self, event):
+        self.textctrl_edit.SetValue("")
 
     def OnSave(self, event):
         dlg = wx.FileDialog(self, "Save operation list...",

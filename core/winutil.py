@@ -17,18 +17,22 @@ def getAllTitles(hwnd, lparam):
     if IsWindow(hwnd) and IsWindowEnabled(hwnd) and IsWindowVisible(hwnd):
         titles.add(GetWindowText(hwnd))
 
+def bringToForeground(hld):
+    if GetForegroundWindow() != hld:
+        win32api.keybd_event(win32con.VK_MENU, 0, \
+                                 win32con.KEYEVENTF_EXTENDEDKEY, 0)
+        win32gui.SetForegroundWindow(hld)
+        win32api.keybd_event(win32con.VK_MENU, 0, \
+                             win32con.KEYEVENTF_EXTENDEDKEY | \
+                             win32con.KEYEVENTF_KEYUP, 0)
+
+
 def mouseEventOnWindow(hld, pos, times = 1, button = 1,
                        down = True, up = True):
 
     win32api.SetCursorPos(pos)
 
-    if win32gui.GetForegroundWindow() != hld:
-        win32api.keybd_event(win32con.VK_MENU, 0, \
-                             win32con.KEYEVENTF_EXTENDEDKEY, 0)
-        win32gui.SetForegroundWindow(hld)
-        win32api.keybd_event(win32con.VK_MENU, 0, \
-                             win32con.KEYEVENTF_EXTENDEDKEY | \
-                             win32con.KEYEVENTF_KEYUP, 0)
+    bringToForeground(hld)
     
     time.sleep(0.2)
 
@@ -56,8 +60,7 @@ def revertCursor():
     global cursor_pos
     win32api.SetCursorPos(cursor_pos)
 
-def bringToForeground(hld):
-    win32gui.SetForegroundWindow(hld)
+
 
 def isMaximized(hld):
     return win32con.SW_SHOWMAXIMIZED == \

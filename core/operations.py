@@ -5,7 +5,24 @@ import screenresolution
 
 from coreexceptions import WindowNotFound
 
+class Annotation:
+    def __init__(self, content = ""):
+        self.content = content
+        
+    def play(self):
+        # do nothing.. I'm just a tiny
+        # piece of annotation
+        pass
+    
+    def script_out(self):
+        return self.content
+    
+    def script_in(self, script):
+        self.content = script
+        return self
+
 class Click:
+    
     def __init__(self, title = "", pos = (0, 0)):
         self.title = title
         self.pos = pos

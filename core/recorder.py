@@ -7,7 +7,8 @@ import screenresolution
 
 from coreexceptions import WindowNotFound
 
-from operations import CheckPoint, Snap, \
+from operations import Annotation, \
+                       CheckPoint, Snap, \
                        Click, RightClick, DoubleClick, \
                        Hold, Drag, \
                        Interval, Wait, \
@@ -16,6 +17,7 @@ from operations import CheckPoint, Snap, \
                        Key, TypeString
 
 operation_classes = dict()
+operation_classes['Annotation'] = Annotation
 operation_classes['Click'] = Click
 operation_classes['RightClick'] = RightClick
 operation_classes['DoubleClick'] = DoubleClick
@@ -178,6 +180,20 @@ class Recorder:
         with open(fpath, 'wb') as f:
             self.saveFile(f)
 
+    def setEdit(self, pos):
+        if pos == -1:
+            self.editPos = len(self.opList)
+        elif pos >= 0 and pos <= len(self.opList):
+            self.editPos = pos
+        else:
+            print "position out of index"
+
+    def annotate(self, content):
+        self.record(Annotation(content))
+
+
+
+
     # private methods
     def getTitleAndPos(self, pos, windowname = ""):
         """return the title of the top-level window;
@@ -251,18 +267,10 @@ class Recorder:
         for op in self.opList:
             f.write(op.__class__.__name__ + '\n')
             f.write(op.script_out() + '\n')
-    
+
     def record(self, op):
         self.opList.insert(self.editPos, op)
         self.editPos += 1
-
-    def setEdit(self, pos):
-        if pos == -1:
-            self.editPos = len(self.opList)
-        elif pos >= 0 and pos <= len(self.opList):
-            self.editPos = pos
-        else:
-            print "position out of index"
 
     def imageFileToPath(self, name):
         return 'snapshots/' + name + '.png'
