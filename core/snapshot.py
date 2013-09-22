@@ -10,7 +10,7 @@ def snapWindow(title, filepath):
     winutil.maximizeWindow(hld)
     winutil.bringToForeground(hld)
     winutil.avertCursor()
-    time.sleep(1)
+    time.sleep(2)
     
     # use PrintScreen to capture app window
     # the combination Alt + PrintScreen is problematic on some win 7 versions

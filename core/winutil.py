@@ -11,30 +11,29 @@ Refactor it sometime
 
 
 
-titles = set()
+titles = None
 
 def getAllTitles(hwnd, lparam):
     if IsWindow(hwnd) and IsWindowEnabled(hwnd) and IsWindowVisible(hwnd):
         titles.add(GetWindowText(hwnd))
 
 def bringToForeground(hld):
-    if GetForegroundWindow() != hld:
+    while GetForegroundWindow() != hld:
         win32api.keybd_event(win32con.VK_MENU, 0, \
                                  win32con.KEYEVENTF_EXTENDEDKEY, 0)
         win32gui.SetForegroundWindow(hld)
         win32api.keybd_event(win32con.VK_MENU, 0, \
                              win32con.KEYEVENTF_EXTENDEDKEY | \
                              win32con.KEYEVENTF_KEYUP, 0)
+        time.sleep(0.2)
 
 
 def mouseEventOnWindow(hld, pos, times = 1, button = 1,
                        down = True, up = True):
 
-    win32api.SetCursorPos(pos)
-
     bringToForeground(hld)
-    
-    time.sleep(0.2)
+
+    win32api.SetCursorPos(pos)
 
     if button == 1:
         EVENT_1 = win32con.MOUSEEVENTF_LEFTDOWN
@@ -114,7 +113,9 @@ def WindowToScreen(wnd, pos):
 
 def getWindowHandle(title):
     """raises WindowNotFound"""
-    
+
+    global titles
+    titles = set()
     EnumWindows(getAllTitles, 0)
 
     try:
@@ -125,7 +126,8 @@ def getWindowHandle(title):
     for t in titles:
         ut = t.decode('gb2312', errors = 'ignore')
         if title in ut:
-            return FindWindow(None, t)
+            h = FindWindow(None, t)
+            if h: return h
 
     raise WindowNotFound(title)
 

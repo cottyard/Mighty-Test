@@ -28,3 +28,4 @@ class ResultFrame(wx.Frame):
 
     def write(self, msg):
         self.result.AppendText(msg)
+        self.Show()
