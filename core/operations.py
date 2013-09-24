@@ -149,17 +149,19 @@ class CheckPoint:
         self.filename = filename
 
     def play(self):
-        if not os.path.exists(os.path.realpath(self.filename)):
-            snapshot.snapWindow(self.title, self.filename)
-            return "message: " + "check point image file " + self.filename + \
+        from recorder import Recorder
+        img = Recorder.imageFileToPath(self.filename)
+        if not os.path.exists(os.path.realpath(img)):
+            snapshot.snapWindow(self.title, img)
+            return "message: " + "check point image file " + img + \
                    " doesn't exist and has been created"
             
         tempfile = 'snapshots/checkpoint.png'
         snapshot.snapWindow(self.title, tempfile)
 
-        if not snapshot.compareSnapshots(self.filename, tempfile):
+        if not snapshot.compareSnapshots(img, tempfile):
             return "error: " + "checkpoint fails: " + tempfile + \
-                   " is inconsistent with " + self.filename
+                   " is inconsistent with " + img
 
         # delete temp file
         os.remove(os.path.realpath(tempfile))
@@ -179,7 +181,9 @@ class Snap:
         self.filename = filename
 
     def play(self):
-        snapshot.snapWindow(self.title, self.filename)
+        from recorder import Recorder
+        img = Recorder.imageFileToPath(self.filename)
+        snapshot.snapWindow(self.title, img)
 
     def script_out(self):
         return str((self.title, self.filename))

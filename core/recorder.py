@@ -1,6 +1,6 @@
 from win32gui import *
 import win32gui, win32api, win32con
-import time, os
+import time, os, platform
 import winutil
 import snapshot
 import screenresolution
@@ -34,6 +34,15 @@ operation_classes['Key'] = Key
 operation_classes['TypeString'] = TypeString
 
 class Recorder:
+            
+    if platform.release() == 'XP':
+        SNAPSHOT_DIR = 'snapshots/xp/'
+    elif platform.release() == '7':
+        SNAPSHOT_DIR = 'snapshots/'
+    else:
+        raise Exception('Not supported OS')
+    
+    LIST_DIR = 'lists/'
     
     KEY_DOWN = 1
     KEY_UP = 0
@@ -51,10 +60,12 @@ class Recorder:
     leftDownPos = (0, 0)
 
     def __init__(self):
-        if not os.path.exists(os.path.realpath('snapshots')):
-            os.mkdir(os.path.realpath('snapshots'))
-        if not os.path.exists(os.path.realpath('lists')):
-            os.mkdir(os.path.realpath('lists'))
+        if not os.path.exists(os.path.realpath(self.SNAPSHOT_DIR)):
+            os.mkdir(os.path.realpath(self.SNAPSHOT_DIR))
+        if not os.path.exists(os.path.realpath(self.LIST_DIR)):
+            os.mkdir(os.path.realpath(self.LIST_DIR))
+
+
 
     # interfaces
     """
@@ -90,19 +101,12 @@ class Recorder:
 
     def recordWait(self, title, waittime):
         self.record(Wait(title, waittime))
-
-    def createCheckpoint(self, windowTitle, filename):
-        path = self.imageFileToPath(filename)
-        snapshot.snapWindow(windowTitle, path)
-        self.record(CheckPoint(windowTitle, path))
     
     def recordCheckpoint(self, windowTitle, filename):
-        path = self.imageFileToPath(filename)
-        self.record(CheckPoint(windowTitle, path))
+        self.record(CheckPoint(windowTitle, filename))
 
     def recordSnap(self, windowTitle, filename):
-        path = self.imageFileToPath(filename)
-        self.record(Snap(windowTitle, path))
+        self.record(Snap(windowTitle, filename))
 
     def recordWinState(self, title, state):
         self.record(WinState(title, state))
@@ -192,8 +196,6 @@ class Recorder:
         self.record(Annotation(content))
 
 
-
-
     # private methods
     def getTitleAndPos(self, pos, windowname = ""):
         """return the title of the top-level window;
@@ -272,12 +274,6 @@ class Recorder:
         self.opList.insert(self.editPos, op)
         self.editPos += 1
 
-    def imageFileToPath(self, name):
-        return 'snapshots/' + name + '.png'
-
-    def listFileToPath(self, name):
-        return 'lists/' + name + '.op'
-
     def beforePlay(self):
         winutil.setOrientation('tl')
         self.resolution = screenresolution.getRes()
@@ -285,3 +281,11 @@ class Recorder:
     def afterPlay(self):
         if screenresolution.getRes() != self.resolution:
             screenresolution.convert(self.resolution)
+
+    @classmethod
+    def imageFileToPath(self, name):
+        return self.SNAPSHOT_DIR + name + '.png'
+
+    @classmethod
+    def listFileToPath(self, name):
+        return self.LIST_DIR + name + '.op'
