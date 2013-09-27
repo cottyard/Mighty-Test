@@ -9,7 +9,10 @@ This module is small at first and is getting ugly as it grows.
 Refactor it sometime
 """
 
-
+def clickOnScreen(pos):
+    win32api.SetCursorPos(pos)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTDOWN, pos[0], pos[1],0,0)
+    win32api.mouse_event(win32con.MOUSEEVENTF_LEFTUP, pos[0], pos[1],0,0)
 
 titles = None
 

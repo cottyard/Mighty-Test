@@ -96,6 +96,35 @@ class Hold:
         self.duration = t[2]
         return self
 
+import datetime
+import vision
+
+class SmartClick:
+    def __init__(self, pos = (0, 0)):
+        filename = datetime.datetime.fromtimestamp(time.time())\
+                   .strftime('%Y-%m-%d %H.%M.%S')
+        from recorder import Recorder
+        self.path = Recorder.traceFileToPath(filename)
+        widget_pos = snapshot.snapWidgetFromPoint(pos, self.path)
+        # SmartClick does not support Orient
+        self.pos = (pos[0] - widget_pos[0], pos[1] - widget_pos[1])
+        
+    def play(self):
+        widget_pos = vision.findInScreen(self.path)
+        if widget_pos is None:
+            return 'message: did not find ' + self.path + ' on screen.'
+        sPos = (widget_pos[0] + self.pos[0], widget_pos[1] + self.pos[1])
+        winutil.clickOnScreen(sPos)
+
+    def script_out(self):
+        return str((self.path, self.pos))
+
+    def script_in(self, script):
+        t = eval(script)
+        self.path = t[0]
+        self.pos = t[1]
+        return self
+
 class Interval:
     def __init__(self, interval = 0):
         self.interval = interval
@@ -142,7 +171,7 @@ class Wait:
         self.window_title = t[0]
         self.waiting_time = t[1]
         return self
-    
+
 class CheckPoint:
     def __init__(self, title = "", filename = ""):
         self.title = title
@@ -155,7 +184,7 @@ class CheckPoint:
             snapshot.snapWindow(self.title, img)
             return "message: " + "check point image file " + img + \
                    " doesn't exist and has been created"
-            
+
         tempfile = 'snapshots/checkpoint.png'
         snapshot.snapWindow(self.title, tempfile)
 
@@ -168,7 +197,7 @@ class CheckPoint:
 
     def script_out(self):
         return str((self.title, self.filename))
-    
+
     def script_in(self, script):
         t = eval(script)
         self.title = t[0]
@@ -238,7 +267,7 @@ class Resolution:
 
     def script_out(self):
         return str(self.resolution)
-    
+
     def script_in(self, script):
         self.resolution = eval(script)
         return self
@@ -249,7 +278,7 @@ class Orient:
 
     def play(self):
         winutil.setOrientation(self.flag)
-    
+
     def script_out(self):
         return self.flag
 

@@ -4,6 +4,13 @@ import math, operator
 from PIL import ImageGrab, Image
 import winutil
 
+def snapWidgetFromPoint(point, path):
+    wnd = win32gui.WindowFromPoint(point)
+    rect = win32gui.GetWindowRect(wnd)
+    i = ImageGrab.grab(rect)
+    i.save(path, "PNG")
+    return (rect[0], rect[1])
+
 def snapWindow(title, filepath):
     hld = winutil.getWindowHandle(title)
     normalWindow = not winutil.isMaximized(hld)

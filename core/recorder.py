@@ -11,6 +11,7 @@ from operations import Annotation, \
                        CheckPoint, Snap, \
                        Click, RightClick, DoubleClick, \
                        Hold, Drag, \
+                       SmartClick, \
                        Interval, Wait, \
                        WinState, Resolution, \
                        Orient, \
@@ -23,6 +24,7 @@ operation_classes['RightClick'] = RightClick
 operation_classes['DoubleClick'] = DoubleClick
 operation_classes['Hold'] = Hold
 operation_classes['Drag'] = Drag
+operation_classes['SmartClick'] = SmartClick
 operation_classes['Interval'] = Interval
 operation_classes['Wait'] = Wait
 operation_classes['CheckPoint'] = CheckPoint
@@ -43,6 +45,7 @@ class Recorder:
         raise Exception('Not supported OS')
     
     LIST_DIR = 'lists/'
+    TRACE_DIR = 'trace/'
     
     KEY_DOWN = 1
     KEY_UP = 0
@@ -64,7 +67,8 @@ class Recorder:
             os.mkdir(os.path.realpath(self.SNAPSHOT_DIR))
         if not os.path.exists(os.path.realpath(self.LIST_DIR)):
             os.mkdir(os.path.realpath(self.LIST_DIR))
-
+        if not os.path.exists(os.path.realpath(self.TRACE_DIR)):
+            os.mkdir(os.path.realpath(self.TRACE_DIR))
 
 
     # interfaces
@@ -96,12 +100,18 @@ class Recorder:
         if press:
             self.recordClick(title, wPos, 2)
 
+    def recordSmartClick(self, pos):
+        title = self.getTitleAndPos(pos)[0]
+        if title:
+            if not self.validTitle(title): return
+        self.record(SmartClick(pos))
+
     def recordInterval(self, itv):
         self.record(Interval(itv))
 
     def recordWait(self, title, waittime):
         self.record(Wait(title, waittime))
-    
+
     def recordCheckpoint(self, windowTitle, filename):
         self.record(CheckPoint(windowTitle, filename))
 
@@ -289,3 +299,7 @@ class Recorder:
     @classmethod
     def listFileToPath(self, name):
         return self.LIST_DIR + name + '.op'
+
+    @classmethod
+    def traceFileToPath(self, name):
+        return self.TRACE_DIR + name + '.png'
