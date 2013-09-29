@@ -1,5 +1,5 @@
 import wx, os, threading
-from util import pack, ResultFrame
+from util import pack, ResultFrame, ImageFrame
 import delegate
 from delegate import gui_updator, daemon
 
@@ -55,6 +55,10 @@ class ListPanel(wx.Panel):
                       )
 
         self.resultFrame = ResultFrame(self, "playing output")
+        self.imageFrame = ImageFrame(self, "")
+
+    def attachedFrames(self):
+        return (self.resultFrame, self.imageFrame)
 
     def updateList(self, l, edit):
         self.list.Set(l)
@@ -71,11 +75,11 @@ class ListPanel(wx.Panel):
         try:
             for i in self.list.GetSelections():
                 self.list.Deselect(i)
-            
+
             p = int(self.textctrl_edit.GetValue())
             if p < 0 or p >= self.list.GetCount():
                 raise ValueError
-            
+
             delegate.recorder.setEdit(p)
             self.list.SetSelection(p)
         except:
@@ -128,6 +132,16 @@ class ListPanel(wx.Panel):
             s = self.list.GetSelections()
             if len(s) == 1:
                 self.textctrl_edit.SetValue(str(s[0]))
+
+                s = self.list.GetString(s[0])
+                if s.startswith("SmartClick"):
+                    s = s.replace('SmartClick', '')
+                    s = s.lstrip()
+                    p = eval(s)[0]
+                    self.imageFrame.SetTitle("view " + p)
+                    self.imageFrame.load(p)
+                    
+                    
         except IndexError:
             pass
 

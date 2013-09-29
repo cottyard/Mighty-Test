@@ -110,6 +110,8 @@ class SmartClick:
         self.pos = (pos[0] - widget_pos[0], pos[1] - widget_pos[1])
         
     def play(self):
+        if not os.path.exists(os.path.realpath(self.path)):
+            return 'error: template image ' + self.path + ' does not exist.'
         widget_pos = vision.findInScreen(self.path)
         if widget_pos is None:
             return 'message: did not find ' + self.path + ' on screen.'

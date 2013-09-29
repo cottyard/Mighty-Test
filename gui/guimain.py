@@ -11,7 +11,6 @@ import delegate
 class MainFrame(wx.Frame):
     def __init__(self, parent, id):
         wx.Frame.__init__(self, parent, id, "Operation Genius",
-                          #style = wx.DEFAULT_FRAME_STYLE)
                           style = wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
 
         self.panel = wx.Panel(self)
@@ -23,7 +22,7 @@ class MainFrame(wx.Frame):
         self.sync_panel = SyncPanel(self.panel)
         self.list_panel = ListPanel(self.panel)
         self.environ_panel = EnvironPanel(self.panel)
-        
+
         pm = self.makeFunctionPane(self.mouse_panel, "Mouse")
         pw = self.makeFunctionPane(self.window_panel, "Window")
         pc = self.makeFunctionPane(self.check_panel, "Check")
@@ -49,11 +48,11 @@ class MainFrame(wx.Frame):
         sizer.AddGrowableCol(0)
 
         self.panel.SetSizer(sizer)
-        
+
         self.panel.Fit()
         self.Fit()
         self.SetMinSize(self.GetSize())
-        
+
         self.Bind(wx.EVT_CLOSE, self.OnExit)
         self.Show()
 
@@ -69,9 +68,8 @@ class MainFrame(wx.Frame):
              for name, data in zip(lists[0], lists[1])]
         edit = delegate.recorder.editPos
         self.list_panel.updateList(l, edit)
-    
+
     def OnExit(self, event):
-        #delegate.listener.stop()
         event.Skip()
 
 class MyApp(wx.App):
@@ -79,7 +77,7 @@ class MyApp(wx.App):
         wx.InitAllImageHandlers()
 
         self.mainframe = MainFrame(parent = None, id = -1)
-        
+
         delegate.listener.register_click(
             self.mainframe.mouse_panel.OnMouseEvent)
 
@@ -97,28 +95,26 @@ class MyApp(wx.App):
         sys.stdout = self.out
         sys.stderr = self.err
         wx.Exit()
-    
+
     def getMainWindow(self):
         return self.mainframe
-
 
 app = None
 
 class GuiMeta:
-    
+
     def update(self):
         app.getMainWindow().updateGUI()
-        
+
     def toggleOnTop(self):
-        
-        app.getMainWindow().list_panel \
-           .resultFrame.ToggleWindowStyle(wx.STAY_ON_TOP)
-        app.getMainWindow().list_panel \
-           .resultFrame.Refresh()
+
+        for frame in app.getMainWindow().list_panel.attachedFrames():
+            frame.ToggleWindowStyle(wx.STAY_ON_TOP)
+            frame.Refresh()
 
         app.getMainWindow().ToggleWindowStyle(wx.STAY_ON_TOP)
         app.getMainWindow().Refresh()
-        
+
 def InitGUI():
     global app
     app = MyApp(0)

@@ -1,4 +1,5 @@
-import wx
+import wx, os
+
 def pack(style, *windows):
     s = wx.BoxSizer(style)
     for w in windows:
@@ -29,3 +30,25 @@ class ResultFrame(wx.Frame):
     def write(self, msg):
         self.result.AppendText(msg)
         self.Show()
+
+# the image display frame
+class ImageFrame(wx.Frame):
+    def __init__(self, parent, title):
+        wx.Frame.__init__(self, parent, -1, title, \
+                          style = (wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
+                          ^ wx.RESIZE_BORDER ^ wx.MAXIMIZE_BOX)
+        self.SetMinSize((300,-1))
+        self.img = wx.StaticBitmap(self)
+        self.Bind(wx.EVT_CLOSE, self.OnClose)
+        
+    def load(self, path):
+        if not os.path.exists(path):
+            return
+        img = wx.Image(path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
+        self.img.SetBitmap(img)
+        self.Refresh()
+        self.Fit()
+        self.Show()
+
+    def OnClose(self, event):
+        self.Hide()
