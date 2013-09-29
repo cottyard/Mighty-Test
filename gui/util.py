@@ -37,8 +37,9 @@ class ImageFrame(wx.Frame):
         wx.Frame.__init__(self, parent, -1, title, \
                           style = (wx.DEFAULT_FRAME_STYLE | wx.STAY_ON_TOP)
                           ^ wx.RESIZE_BORDER ^ wx.MAXIMIZE_BOX)
-        self.SetMinSize((300,-1))
-        self.img = wx.StaticBitmap(self)
+        self.SetMinSize((500,-1))
+        self.panel = wx.Panel(self)
+        self.img = wx.StaticBitmap(self.panel)
         self.Bind(wx.EVT_CLOSE, self.OnClose)
         
     def load(self, path):
@@ -47,6 +48,7 @@ class ImageFrame(wx.Frame):
         img = wx.Image(path, wx.BITMAP_TYPE_PNG).ConvertToBitmap()
         self.img.SetBitmap(img)
         self.Refresh()
+        self.panel.Fit()
         self.Fit()
         self.Show()
 
