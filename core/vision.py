@@ -1,4 +1,5 @@
 from cv2 import cv
+import numpy # need to explicitly import this for pyinstaller to detect dependency
 from PIL import ImageGrab
 
 def findInScreen(path):
