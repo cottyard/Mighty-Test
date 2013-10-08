@@ -18,13 +18,15 @@ def snapWindow(title, filepath):
     winutil.bringToForeground(hld)
     winutil.avertCursor()
     time.sleep(2)
-    
-    # use PrintScreen to capture app window
-    # the combination Alt + PrintScreen is problematic on some win 7 versions
-    
 
-    win32api.keybd_event(win32con.VK_SNAPSHOT, 0, 0, 0)
-    win32api.keybd_event(win32con.VK_SNAPSHOT, 0, win32con.KEYEVENTF_KEYUP, 0)
+    im = ImageGrab.grab()
+    
+##    # use PrintScreen to capture app window
+##    # the combination Alt + PrintScreen is problematic on some win 7 versions
+##    
+##
+##    win32api.keybd_event(win32con.VK_SNAPSHOT, 0, 0, 0)
+##    win32api.keybd_event(win32con.VK_SNAPSHOT, 0, win32con.KEYEVENTF_KEYUP, 0)
     
     """
     # Alt + PrintScreen to capture app window
@@ -40,7 +42,7 @@ def snapWindow(title, filepath):
     time.sleep(0.1)
     """
     
-    time.sleep(2) # Wait long enough for the clipboard to accept the new image
+##    time.sleep(2) # Wait long enough for the clipboard to accept the new image
     
     winutil.revertCursor()
 
@@ -50,7 +52,7 @@ def snapWindow(title, filepath):
         winutil.normalizeWindow(hld)
         
     # Carve out the window and save sto file
-    im = ImageGrab.grabclipboard()
+    
     w, h = im.size
 
     CROP_BORDER = 10

@@ -95,8 +95,6 @@ class Recorder:
 
     def OnMouseRight(self, pos, press, windowname = ''):
         title, wPos = self.getTitleAndPos(pos, windowname)
-        if windowname:
-            title = windowname
         if press:
             self.recordClick(title, wPos, 2)
 
@@ -221,6 +219,18 @@ class Recorder:
                 if windowname in GetWindowText(wnd):
                     break
             wnd = GetParent(wnd)
+
+        # if the user-specified window is a valid top-level window, use it
+        # except that the click took place on the genius application window or
+        # on a child window that has the user-specified name
+        if GetWindowText(wnd) != "Operation Genius" and windowname:
+            try:
+                w = winutil.getWindowHandle(windowname)
+            except WindowNotFound:
+                pass
+            else:
+                if windowname not in GetWindowText(wnd):
+                    wnd = w
             
         title = GetWindowText(wnd)
         wPos = winutil.ScreenToWindow(wnd, pos)
