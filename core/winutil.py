@@ -37,6 +37,7 @@ def mouseEventOnWindow(hld, pos, times = 1, button = 1,
     bringToForeground(hld)
 
     win32api.SetCursorPos(pos)
+    time.sleep(0.3)
 
     if button == 1:
         EVENT_1 = win32con.MOUSEEVENTF_LEFTDOWN

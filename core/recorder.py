@@ -134,17 +134,19 @@ class Recorder:
         winutil.setOrientation(flag)
         self.record(Orient(flag))
 
-    def play(self, interval = 0.5):
+    def play(self, selected = None):
+        if not selected:
+            selected = range(len(self.opList))
         self.beforePlay()
         try:
-            for i in range(len(self.opList)):
+            for i in selected:
                 op = self.opList[i]
                 e = op.play()
                 if e:
                     print e
                     if e.startswith("error:"):
                         break
-                time.sleep(interval)
+                time.sleep(0.5)
                 
         except WindowNotFound as e:
             print "error: cannot find window", e

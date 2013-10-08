@@ -93,7 +93,8 @@ class ListPanel(wx.Panel):
         delegate.gui.toggleOnTop()
         try:
             print "---------- START ----------\n"
-            delegate.recorder.play()
+            s = self.list.GetSelections()
+            delegate.recorder.play(s)
             print "\n---------- DONE ----------\n\n"
         finally:
             delegate.gui.toggleOnTop()
