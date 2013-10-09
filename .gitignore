@@ -1,4 +1,4 @@
-core\*.pyc
-gui\*.pyc
+core/*.pyc
+gui/*.pyc
 lists
 snapshots

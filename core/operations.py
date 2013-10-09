@@ -177,33 +177,53 @@ class Wait:
 class CheckPoint:
     def __init__(self, title = "", filename = ""):
         self.title = title
-        self.filename = filename
+        self.filenames = (filename, )
 
     def play(self):
         from recorder import Recorder
-        img = Recorder.imageFileToPath(self.filename)
-        if not os.path.exists(os.path.realpath(img)):
-            snapshot.snapWindow(self.title, img)
-            return "message: " + "check point image file " + img + \
-                   " doesn't exist and has been created"
+        if len(self.filenames) == 1:
+            img = Recorder.imageFileToPath(self.filenames[0])
+            if not os.path.exists(img):
+                snapshot.snapWindow(self.title, img)
+                return "message: " + "check point image file " + img + \
+                       " doesn't exist and has been created"
 
-        tempfile = 'snapshots/checkpoint.png'
-        snapshot.snapWindow(self.title, tempfile)
+            tempfile = 'snapshots/checkpoint.png'
+            snapshot.snapWindow(self.title, tempfile)
 
-        if not snapshot.compareSnapshots(img, tempfile):
-            return "error: " + "checkpoint fails: " + tempfile + \
-                   " is inconsistent with " + img
+            if not snapshot.compareSnapshots(img, tempfile):
+                return "error: " + "checkpoint fails: " + tempfile + \
+                       " is inconsistent with " + img
 
-        # delete temp file
-        os.remove(os.path.realpath(tempfile))
+            # delete temp file
+            os.remove(os.path.realpath(tempfile))
+            
+        else: # this is a temporary behavior modification
+            match = False
+            tempfile = 'snapshots/checkpoint.png'
+            snapshot.snapWindow(self.title, tempfile)
+            
+            for i in self.filenames:
+                img = Recorder.imageFileToPath(i)
+                if not os.path.exists(img):
+                    return "message: check point image file " + img + \
+                           " doesn't exist"
+
+                if snapshot.compareSnapshots(img, tempfile):
+                   match = True
+                   break
+                
+            if not match:
+                return "error: checkpoint fails: " + tempfile + \
+                       " matches none of the image files"
 
     def script_out(self):
-        return str((self.title, self.filename))
+        return str((self.title,) + self.filenames)
 
     def script_in(self, script):
         t = eval(script)
         self.title = t[0]
-        self.filename = t[1]
+        self.filenames = t[1:]
         return self
 
 class Snap:
