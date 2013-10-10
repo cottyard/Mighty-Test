@@ -11,7 +11,7 @@ class KeyPanel(wx.Panel):
         self.button_up = wx.Button(self, label = "Up")
         self.button_type = wx.Button(self, label = "Type")
         
-        self.keyList = ['Shift', 'Ctrl']        
+        self.keyList = ['Shift', 'Ctrl', 'Enter']
         self.choice_key = wx.Choice(self, choices = self.keyList)
         self.choice_key.SetSelection(0)
 
