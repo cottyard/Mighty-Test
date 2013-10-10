@@ -29,6 +29,8 @@ keymask = dict()
 keymask["shift"] = win32con.VK_SHIFT
 keymask["ctrl"] = win32con.VK_CONTROL
 keymask["enter"] = win32con.VK_RETURN
+keymask["alt"] = win32con.VK_MENU
+keymask["backspace"] = win32con.VK_BACK
 
 def toggle_key(keyname, action):
     win32api.keybd_event(keymask[keyname], 0, \
